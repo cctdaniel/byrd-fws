@@ -1,26 +1,41 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Auth } from "aws-amplify"
+import React, { useEffect, useState } from "react"
+import "./App.css"
+import { AppContext } from "./libs/contextLib"
+import Routes from "./Routes"
 
-function App() {
+const App = () => {
+  const [isAuthenticated, userHasAuthenticated] = useState(false)
+  const [isAuthenticating, setIsAuthenticating] = useState(true)
+
+  useEffect(() => {
+    onLoad()
+  }, [])
+
+  const onLoad = async () => {
+    try {
+      await Auth.currentSession()
+      userHasAuthenticated(true)
+    } catch (e) {
+      if (e !== "No current user" && e.message !== "Failed to fetch") {
+        alert(e)
+      }
+    }
+
+    setIsAuthenticating(false)
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    !isAuthenticating && (
+      <div className="App container">
+        <AppContext.Provider
+          value={{ isAuthenticated, userHasAuthenticated }}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+          <Routes />
+        </AppContext.Provider>
+      </div>
+    )
+  )
 }
 
-export default App;
+export default App
